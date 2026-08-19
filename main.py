@@ -1,4 +1,4 @@
-__version__ = "4.10.1-minimal-ui"
+__version__ = "4.10.2-kasirqu-branding"
 
 import csv
 import os
@@ -1333,7 +1333,7 @@ class POSApp(App):
     bt_mac_address = StringProperty("")
 
     def build(self):
-        self.title = "POS Kasir"
+        self.title = "KasirQu"
         self.db = Database(os.path.join(self.user_data_dir, "pos.db"))
         self.init_v46_schema()
         self.init_product_image_schema()

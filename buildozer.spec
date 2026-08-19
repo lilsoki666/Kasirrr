@@ -3,7 +3,7 @@
 # ==========================================
 # IDENTITAS APLIKASI
 # ==========================================
-title = POS Kasir
+title = KasirQu
 package.name = poskasir
 package.domain = com.syauqi
 
@@ -14,10 +14,14 @@ source.dir = .
 source.include_exts = py,png,jpg,jpeg,atlas,kv,json,ttf,otf,txt
 source.exclude_dirs = .git,.github,.buildozer,bin,__pycache__
 
+# Branding KasirQu
+icon.filename = %(source.dir)s/icon.png
+presplash.filename = %(source.dir)s/presplash.png
+
 # ==========================================
 # VERSION
 # ==========================================
-version = 4.10.1
+version = 4.10.2
 
 # ==========================================
 # PYTHON / KIVY

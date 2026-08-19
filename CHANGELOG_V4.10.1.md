@@ -12,8 +12,3 @@ Merapikan UI V4.10.0 agar lebih minimalis dan nyaman digunakan di layar HP tanpa
 - Toolbar tindakan Produk diperkecil agar lebih banyak kontrol terlihat pada layar HP.
 - Karakter pemisah pada teks produk memakai karakter ASCII aman (`|`) untuk menghindari masalah encoding.
 - Tidak mengubah database, transaksi, stok, Gallery/foto, printer, kategori, laporan, atau navigasi.
-
-## Finalisasi build
-- Sinkronisasi versi aplikasi menjadi 4.10.1 pada `main.py` dan `buildozer.spec`.
-- Tidak menambah permission Gallery karena sistem pemilihan dan pembacaan foto sudah berfungsi pada versi ini.
-- Tidak mengubah workflow build Android yang sudah digunakan.
