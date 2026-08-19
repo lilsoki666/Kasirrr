@@ -1,4 +1,4 @@
-__version__ = "4.9.8-product-image-import-fixed"
+__version__ = "4.10.0-professional-pos-ui"
 
 import csv
 import os
@@ -225,51 +225,93 @@ class IconNavButton(ButtonBehavior, BoxLayout):
 
 
 class ProductCard(ButtonBehavior, BoxLayout):
-    """Touch-friendly product card with an optional thumbnail."""
+    """Responsive, touch-friendly POS product card.
+
+    The card keeps the existing tap-to-add behavior while presenting a
+    consistent photo area and a clear visual add action. No database or
+    product-image storage logic is handled here.
+    """
     def __init__(self, product_id=None, image_path="", **kwargs):
-        super().__init__(orientation="horizontal", spacing=dp(10), padding=dp(10), **kwargs)
+        super().__init__(orientation="horizontal", spacing=dp(10), padding=dp(8), **kwargs)
         self.product_id = product_id
         self.size_hint_y = None
-        self.height = dp(78)
+        self.height = dp(96)
         self._image_path = image_path or ""
         self.bind(state=self._state_redraw)
         self._build_card()
 
     def _build_card(self):
         self.clear_widgets()
-        thumb_box = BoxLayout(size_hint_x=None, width=dp(62), padding=(0, 0))
+
+        thumb_box = BoxLayout(
+            orientation="vertical",
+            size_hint_x=None,
+            width=dp(76),
+            padding=dp(2),
+        )
+        with thumb_box.canvas.before:
+            Color(0.94, 0.96, 0.98, 1)
+            from kivy.graphics import RoundedRectangle
+            thumb_bg = RoundedRectangle(pos=thumb_box.pos, size=thumb_box.size, radius=[dp(8)])
+        thumb_box.bind(pos=lambda w, v: setattr(thumb_bg, "pos", v),
+                       size=lambda w, v: setattr(thumb_bg, "size", v))
+
         if self._image_path and os.path.exists(self._image_path):
             thumb = Image(source=self._image_path, allow_stretch=True, keep_ratio=True)
         else:
-            thumb = Label(text="FOTO", font_size="9sp", bold=True,
-                          color=(.45, .50, .58, 1), halign="center", valign="middle")
+            thumb = Label(
+                text="FOTO", font_size="9sp", bold=True,
+                color=(.45, .50, .58, 1), halign="center", valign="middle"
+            )
             thumb.bind(size=lambda w, v: setattr(w, "text_size", v))
         thumb_box.add_widget(thumb)
         self.add_widget(thumb_box)
 
-        self.info_box = BoxLayout(orientation="vertical", spacing=dp(2))
-        self.name_label = Label(font_size="12sp", bold=True,
-                                color=(.08, .10, .14, 1), halign="left", valign="middle",
-                                text_size=(None, None))
-        self.detail_label = Label(font_size="10sp", color=(.35, .40, .48, 1),
-                                  halign="left", valign="middle", text_size=(None, None))
+        self.info_box = BoxLayout(orientation="vertical", spacing=dp(1), padding=(dp(2), dp(4)))
+        self.name_label = Label(
+            font_size="12.5sp", bold=True,
+            color=(.08, .10, .14, 1), halign="left", valign="middle",
+            text_size=(None, None)
+        )
+        self.detail_label = Label(
+            font_size="10sp", color=(.35, .40, .48, 1),
+            halign="left", valign="middle", text_size=(None, None)
+        )
         self.info_box.add_widget(self.name_label)
         self.info_box.add_widget(self.detail_label)
         self.add_widget(self.info_box)
+
+        add_box = BoxLayout(
+            orientation="vertical", size_hint_x=None, width=dp(62),
+            padding=(dp(2), dp(14)),
+        )
+        add_label = Label(
+            text="+", font_size="22sp", bold=True,
+            color=(1, 1, 1, 1), halign="center", valign="middle",
+        )
+        with add_box.canvas.before:
+            Color(0.05, 0.60, 0.30, 1)
+            from kivy.graphics import RoundedRectangle
+            add_bg = RoundedRectangle(pos=add_box.pos, size=add_box.size, radius=[dp(8)])
+        add_box.bind(pos=lambda w, v: setattr(add_bg, "pos", v),
+                     size=lambda w, v: setattr(add_bg, "size", v))
+        add_box.add_widget(add_label)
+        self.add_widget(add_box)
+
         self._state_redraw()
 
     def set_product_text(self, name, detail):
         self.name_label.text = str(name)
         self.detail_label.text = str(detail)
-        self.name_label.bind(size=lambda w, v: setattr(w, "text_size", (max(1, v[0]), None)))
-        self.detail_label.bind(size=lambda w, v: setattr(w, "text_size", (max(1, v[0]), None)))
+        self.name_label.text_size = (max(1, self.info_box.width), None)
+        self.detail_label.text_size = (max(1, self.info_box.width), None)
 
     def _state_redraw(self, *args):
         self.canvas.before.clear()
         with self.canvas.before:
             Color(0.94, 0.97, 0.99, 1) if self.state == "down" else Color(1, 1, 1, 1)
             from kivy.graphics import RoundedRectangle
-            RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(8)])
+            RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(10)])
 
 KV = """
 #:import dp kivy.metrics.dp
@@ -432,7 +474,7 @@ KV = """
             text_size: self.size
 
         Label:
-            text: "v" + app.version + ("  Ã¢â‚¬Â¢  LANDSCAPE" if app.is_landscape else "")
+            text: "v" + app.version + ("  •  LANDSCAPE" if app.is_landscape else "")
             size_hint_x: None
             width: dp(50)
             font_size: "11sp"
@@ -765,7 +807,7 @@ KV = """
 
                 BoxLayout:
                     size_hint_y: None
-                    height: dp(44)
+                    height: dp(48)
                     spacing: dp(6)
                     ModernTextInput:
                         id: search_pos
@@ -774,30 +816,37 @@ KV = """
                     Button:
                         text: "BARCODE"
                         size_hint_x: None
-                        width: dp(95)
+                        width: dp(100)
                         background_normal: ""
                         background_color: .10, .28, .55, 1
                         color: 1, 1, 1, 1
                         bold: True
+                        font_size: "12sp"
                         on_release: app.barcode_popup()
 
                 ScrollView:
                     do_scroll_y: False
                     size_hint_y: None
-                    height: dp(42)
+                    height: dp(44)
                     bar_width: 0
                     BoxLayout:
                         id: pos_category_filter
                         size_hint_x: None
                         width: self.minimum_width
                         spacing: dp(6)
+                        padding: 0, dp(1)
 
                 ScrollView:
+                    id: pos_product_scroll
                     do_scroll_x: False
+                    do_scroll_y: True
+                    bar_width: dp(3)
+                    scroll_type: ["bars", "content"]
                     GridLayout:
                         id: product_grid
                         cols: 1
-                        spacing: dp(6)
+                        spacing: dp(8)
+                        padding: 0, dp(2)
                         size_hint_x: 1
                         width: self.parent.width
                         size_hint_y: None
@@ -805,8 +854,8 @@ KV = """
 
                 CardBox:
                     size_hint_y: None
-                    height: dp(54)
-                    padding: dp(8), dp(4)
+                    height: dp(64)
+                    padding: dp(10), dp(6)
                     spacing: dp(8)
 
                     BoxLayout:
@@ -814,7 +863,7 @@ KV = """
                         Label:
                             id: cart_summary_items
                             text: "0 Item"
-                            font_size: "11sp"
+                            font_size: "10sp"
                             color: .40, .45, .55, 1
                             halign: "left"
                             text_size: self.size
@@ -830,11 +879,12 @@ KV = """
                     Button:
                         text: "Lihat Keranjang"
                         size_hint_x: None
-                        width: dp(140)
+                        width: dp(150)
                         background_normal: ""
                         background_color: .05, .60, .30, 1
                         color: 1, 1, 1, 1
                         bold: True
+                        font_size: "12sp"
                         on_release: app.open_cart_popup()
 
         Screen:
@@ -1262,12 +1312,18 @@ class POSApp(App):
             if not getattr(self, "root", None):
                 return
             # Force the list containers to use the current viewport width.
-            for grid_id in ("product_grid", "products_grid"):
-                try:
-                    grid = self.root.ids[grid_id]
-                    grid.width = max(1, self.root.ids.sm.width - dp(24))
-                except Exception:
-                    pass
+            try:
+                product_grid = self.root.ids["product_grid"]
+                available = max(1, self.root.ids.sm.width - dp(24))
+                product_grid.width = available
+                product_grid.cols = 2 if self.is_landscape and available >= dp(520) else 1
+            except Exception:
+                pass
+            try:
+                grid = self.root.ids["products_grid"]
+                grid.width = max(1, self.root.ids.sm.width - dp(24))
+            except Exception:
+                pass
             self.refresh_pos_categories()
             self.refresh_pos_products(self.root.ids.search_pos.text if "search_pos" in self.root.ids else "")
             self.refresh_products(self.root.ids.search_product.text if "search_product" in self.root.ids else "")
@@ -1476,7 +1532,7 @@ class POSApp(App):
                 if sh:
                     opening, sales, cin, cout = self._cash_summary(sh['id'])
                     expected = opening + sales + cin - cout
-                    self.root.ids.dash_shift_status.text = f"Shift aktif Ã¢â‚¬Â¢ Kas {self.money(expected)}"
+                    self.root.ids.dash_shift_status.text = f"Shift aktif • Kas {self.money(expected)}"
                     self.root.ids.dash_shift_status.color = (.05, .45, .25, 1)
                 else:
                     self.root.ids.dash_shift_status.text = "Shift belum dibuka"
@@ -1643,8 +1699,11 @@ class POSApp(App):
             stock_text = "JASA" if is_service else f"Stok {float(p['stock']):g} {p['unit']}"
             card = ProductCard(product_id=p["id"], image_path=(p["image_path"] if "image_path" in p.keys() else ""))
             card.set_product_text(p["name"], f"{self.money(p['sell_price'])}  |  {stock_text}")
-            card.width = max(1, grid.width)
-            card.bind(size=lambda instance, value: setattr(instance, "width", max(1, grid.width)))
+            cols = max(1, int(getattr(grid, "cols", 1)))
+            gap = dp(8) * max(0, cols - 1)
+            card_width = max(dp(240), (grid.width - gap) / cols)
+            card.width = card_width
+            card.bind(size=lambda instance, value: None)
             card.bind(on_release=lambda b, pid=p["id"]: self.add_to_cart(pid))
             grid.add_widget(card)
 
@@ -2276,14 +2335,14 @@ class POSApp(App):
         header = CardBox(orientation='vertical', size_hint_y=None, height=dp(82), padding=dp(12), spacing=dp(3))
         header.add_widget(Label(text='Pusat Operasional Toko', size_hint_y=None, height=dp(28),
                                 font_size='16sp', bold=True, color=(.08,.12,.18,1), halign='left'))
-        header.add_widget(Label(text=f"{user.get('username', self.cashier_name)}  Ã¢â‚¬Â¢  {user.get('role', 'Kasir')}",
+        header.add_widget(Label(text=f"{user.get('username', self.cashier_name)}  •  {user.get('role', 'Kasir')}",
                                 size_hint_y=None, height=dp(20), font_size='11sp', color=(.35,.40,.48,1), halign='left'))
         if sh:
             opening, sales, cin, cout = self._cash_summary(sh['id'])
             expected = opening + sales + cin - cout
-            chip_text = f"SHIFT AKTIF  Ã¢â‚¬Â¢  Kas {self.money(expected)}"
+            chip_text = f"SHIFT AKTIF  •  Kas {self.money(expected)}"
         else:
-            chip_text = "SHIFT BELUM DIBUKA  Ã¢â‚¬Â¢  Buka shift sebelum transaksi tunai"
+            chip_text = "SHIFT BELUM DIBUKA  •  Buka shift sebelum transaksi tunai"
         chip = StatusChip(text=chip_text)
         chip.color = (.05,.45,.25,1) if sh else (.65,.35,.05,1)
         header.add_widget(chip)
@@ -2554,7 +2613,7 @@ class POSApp(App):
         grid=GridLayout(cols=1,spacing=dp(3),size_hint_y=None); grid.bind(minimum_height=grid.setter('height'))
         if not rows: grid.add_widget(Label(text='Belum ada aktivitas.',size_hint_y=None,height=dp(34)))
         for r in rows:
-            grid.add_widget(Label(text=f"{r['created_at']} | {r['username']}\n{r['action']} Ã¢â‚¬â€ {r['detail']}",size_hint_y=None,height=dp(52),halign='left',valign='middle',text_size=(None,None),font_size='10sp'))
+            grid.add_widget(Label(text=f"{r['created_at']} | {r['username']}\n{r['action']} — {r['detail']}",size_hint_y=None,height=dp(52),halign='left',valign='middle',text_size=(None,None),font_size='10sp'))
         scroll=ScrollView(do_scroll_x=False); scroll.add_widget(grid)
         box=BoxLayout(orientation='vertical',padding=dp(8)); box.add_widget(scroll)
         WhitePopup(title='AUDIT LOG',content=box,size_hint=(.94,.82)).open()
@@ -2586,125 +2645,49 @@ class POSApp(App):
         return dest
 
     def _copy_android_uri_to_file(self, uri):
-        """Copy a selected Android content URI into app-private storage.
-
-        The picker itself is already working. The important part here is to
-        read the returned content:// URI through Android's ParcelFileDescriptor
-        first. Some Gallery/Photo Picker providers expose a URI that does not
-        behave reliably with PyJNIus byte-array ``InputStream.read(byte[])``.
-        We therefore prefer a real detached file descriptor and use normal
-        Python binary I/O. A Java InputStream fallback is kept for providers
-        that cannot expose a file descriptor.
-        """
-        dest = ""
-        stream = None
-        pfd = None
-        fd = None
-        py_file = None
-        out = None
+        """Copy an Android content:// URI into app-private storage."""
         try:
-            from jnius import autoclass
+            from jnius import autoclass, jarray
             PythonActivity = autoclass("org.kivy.android.PythonActivity")
             resolver = PythonActivity.mActivity.getContentResolver()
-
             mime = resolver.getType(uri) or "image/jpeg"
             mime_text = str(mime).lower()
             if "png" in mime_text:
                 ext = ".png"
             elif "webp" in mime_text:
                 ext = ".webp"
-            elif "gif" in mime_text:
-                ext = ".gif"
+            elif "jpeg" in mime_text or "jpg" in mime_text:
+                ext = ".jpg"
             else:
                 ext = ".jpg"
-
-            dest = os.path.join(
-                self._product_image_dir(),
-                "img_" + datetime.now().strftime("%Y%m%d%H%M%S%f") + ext,
-            )
-
-            # Preferred path: Android gives us a real/pipe-backed descriptor.
-            # detachFd() transfers ownership to Python, so Android will not
-            # close it underneath us while the copy is running.
-            try:
-                pfd = resolver.openFileDescriptor(uri, "r")
-                if pfd is not None:
-                    fd = int(pfd.detachFd())
-                    pfd = None
-                    if fd >= 0:
-                        with os.fdopen(fd, "rb") as py_file:
-                            fd = None
-                            with open(dest, "wb") as out:
-                                shutil.copyfileobj(py_file, out, length=1024 * 1024)
-                        if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-                            return dest
-            except Exception as fd_exc:
-                print("Pembacaan file descriptor foto gagal, mencoba InputStream:", repr(fd_exc))
-                if fd is not None:
-                    try:
-                        os.close(fd)
-                    except Exception:
-                        pass
-                    fd = None
-                try:
-                    if pfd is not None:
-                        pfd.close()
-                except Exception:
-                    pass
-                pfd = None
-
-            # Fallback for providers that only expose an InputStream.
+            dest = os.path.join(self._product_image_dir(),
+                                "img_" + datetime.now().strftime("%Y%m%d%H%M%S%f") + ext)
             stream = resolver.openInputStream(uri)
             if stream is None:
                 return ""
             FileOutputStream = autoclass("java.io.FileOutputStream")
             out = FileOutputStream(dest)
-            # Reading one byte at a time is slower, but avoids the PyJNIus
-            # byte[] overload problem that caused the previous implementation
-            # to fail on this device/provider.
-            while True:
-                value = int(stream.read())
-                if value < 0:
-                    break
-                out.write(value)
+            buf = jarray.zeros(8192, 'b')
             try:
-                out.flush()
-            except Exception:
-                pass
-
-            if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-                return dest
-            return ""
-        except Exception as exc:
-            print("Gagal menyalin foto Android:", repr(exc))
-            traceback.print_exc()
-            try:
-                if dest and os.path.exists(dest):
-                    os.remove(dest)
-            except Exception:
-                pass
-            return ""
-        finally:
-            try:
-                if stream is not None:
-                    stream.close()
-            except Exception:
-                pass
-            try:
-                if out is not None:
-                    out.close()
-            except Exception:
-                pass
-            try:
-                if pfd is not None:
-                    pfd.close()
-            except Exception:
-                pass
-            if fd is not None:
+                while True:
+                    n = stream.read(buf)
+                    if n is None or int(n) < 0:
+                        break
+                    if int(n) > 0:
+                        out.write(buf, 0, int(n))
+            finally:
                 try:
-                    os.close(fd)
+                    stream.close()
                 except Exception:
                     pass
+                try:
+                    out.close()
+                except Exception:
+                    pass
+            return dest if os.path.exists(dest) else ""
+        except Exception as exc:
+            print("Gagal menyalin foto Android:", exc)
+            return ""
 
     def _pick_product_image(self, preview=None, status_label=None):
         """Open Android's system image picker without changing POS/database logic.
@@ -2880,9 +2863,15 @@ class POSApp(App):
         grid.clear_widgets()
         for p in self._v48_products(search):
             is_service = self._is_service_product(p)
-            stock_text = "Jasa Ã¢â‚¬Â¢ tanpa stok" if is_service else f"Stok {float(p['stock']):g} {p['unit']}"
-            row = BoxLayout(size_hint_x=1, size_hint_y=None, height=dp(78), spacing=dp(8), padding=dp(8), width=max(1, grid.width))
-            thumb_box = BoxLayout(size_hint_x=None, width=dp(58))
+            stock_text = "Jasa • tanpa stok" if is_service else f"Stok {float(p['stock']):g} {p['unit']}"
+            row = BoxLayout(size_hint_x=1, size_hint_y=None, height=dp(88), spacing=dp(8), padding=dp(8), width=max(1, grid.width))
+            thumb_box = BoxLayout(size_hint_x=None, width=dp(84), padding=dp(2))
+            with thumb_box.canvas.before:
+                Color(0.93, 0.95, 0.97, 1)
+                from kivy.graphics import RoundedRectangle
+                thumb_bg = RoundedRectangle(pos=thumb_box.pos, size=thumb_box.size, radius=[dp(7)])
+            thumb_box.bind(pos=lambda w, v: setattr(thumb_bg, "pos", v),
+                           size=lambda w, v: setattr(thumb_bg, "size", v))
             image_path = p["image_path"] if "image_path" in p.keys() else ""
             if image_path and os.path.exists(image_path):
                 thumb_box.add_widget(Image(source=image_path, allow_stretch=True, keep_ratio=True))
@@ -2892,7 +2881,7 @@ class POSApp(App):
             row.add_widget(thumb_box)
             info = Label(
                 text=f"{p['name']} | {p['barcode'] or '-'}\n"
-                     f"{('JASA' if is_service else 'BARANG')} Ã¢â‚¬Â¢ Jual {self.money(p['sell_price'])} | {stock_text}",
+                     f"{('JASA' if is_service else 'BARANG')} • Jual {self.money(p['sell_price'])} | {stock_text}",
                 halign="left", valign="middle", color=(.08,.10,.14,1), font_size="10sp"
             )
             info.bind(size=lambda w,v: setattr(w,"text_size",(max(1,v[0]),None)))
@@ -2935,7 +2924,7 @@ class POSApp(App):
         remove_btn = Button(text="Hapus Foto", background_normal="", background_color=(.96,.90,.90,1), color=(.72,.12,.12,1), bold=True)
         photo_actions.add_widget(pick_btn); photo_actions.add_widget(remove_btn)
         photo_wrap.add_widget(photo_actions)
-        status = Label(text="Foto tersimpan di perangkat." if self._product_image_path else "Opsional Ã¢â‚¬â€ tambahkan foto produk.",
+        status = Label(text="Foto tersimpan di perangkat." if self._product_image_path else "Opsional — tambahkan foto produk.",
                        size_hint_y=None, height=dp(18), font_size="9sp", color=(.35,.40,.48,1), halign="left", valign="middle")
         status.bind(size=lambda w,v: setattr(w,"text_size",v))
         photo_wrap.add_widget(status)
