@@ -1,4 +1,4 @@
-__version__ = "4.10.1-minimal-ui"
+__version__ = "4.10.0-professional-pos-ui"
 
 import csv
 import os
@@ -225,12 +225,17 @@ class IconNavButton(ButtonBehavior, BoxLayout):
 
 
 class ProductCard(ButtonBehavior, BoxLayout):
-    """Compact, minimal POS product card. Keeps existing tap-to-add logic."""
+    """Responsive, touch-friendly POS product card.
+
+    The card keeps the existing tap-to-add behavior while presenting a
+    consistent photo area and a clear visual add action. No database or
+    product-image storage logic is handled here.
+    """
     def __init__(self, product_id=None, image_path="", **kwargs):
-        super().__init__(orientation="horizontal", spacing=dp(8), padding=dp(4), **kwargs)
+        super().__init__(orientation="horizontal", spacing=dp(10), padding=dp(8), **kwargs)
         self.product_id = product_id
         self.size_hint_y = None
-        self.height = dp(78)
+        self.height = dp(96)
         self._image_path = image_path or ""
         self.bind(state=self._state_redraw)
         self._build_card()
@@ -239,48 +244,60 @@ class ProductCard(ButtonBehavior, BoxLayout):
         self.clear_widgets()
 
         thumb_box = BoxLayout(
-            orientation="vertical", size_hint_x=None, width=dp(64), padding=dp(1)
+            orientation="vertical",
+            size_hint_x=None,
+            width=dp(76),
+            padding=dp(2),
         )
         with thumb_box.canvas.before:
             Color(0.94, 0.96, 0.98, 1)
             from kivy.graphics import RoundedRectangle
-            thumb_bg = RoundedRectangle(pos=thumb_box.pos, size=thumb_box.size, radius=[dp(7)])
+            thumb_bg = RoundedRectangle(pos=thumb_box.pos, size=thumb_box.size, radius=[dp(8)])
         thumb_box.bind(pos=lambda w, v: setattr(thumb_bg, "pos", v),
                        size=lambda w, v: setattr(thumb_bg, "size", v))
 
         if self._image_path and os.path.exists(self._image_path):
             thumb = Image(source=self._image_path, allow_stretch=True, keep_ratio=True)
         else:
-            thumb = Label(text="FOTO", font_size="8sp", bold=True,
-                          color=(.45, .50, .58, 1), halign="center", valign="middle")
+            thumb = Label(
+                text="FOTO", font_size="9sp", bold=True,
+                color=(.45, .50, .58, 1), halign="center", valign="middle"
+            )
             thumb.bind(size=lambda w, v: setattr(w, "text_size", v))
         thumb_box.add_widget(thumb)
         self.add_widget(thumb_box)
 
-        self.info_box = BoxLayout(orientation="vertical", spacing=0, padding=(dp(2), dp(2)))
+        self.info_box = BoxLayout(orientation="vertical", spacing=dp(1), padding=(dp(2), dp(4)))
         self.name_label = Label(
-            font_size="11.5sp", bold=True, color=(.08, .10, .14, 1),
-            halign="left", valign="middle", text_size=(None, None)
+            font_size="12.5sp", bold=True,
+            color=(.08, .10, .14, 1), halign="left", valign="middle",
+            text_size=(None, None)
         )
         self.detail_label = Label(
-            font_size="9.5sp", color=(.38, .43, .50, 1),
+            font_size="10sp", color=(.35, .40, .48, 1),
             halign="left", valign="middle", text_size=(None, None)
         )
         self.info_box.add_widget(self.name_label)
         self.info_box.add_widget(self.detail_label)
         self.add_widget(self.info_box)
 
-        add_box = BoxLayout(orientation="vertical", size_hint_x=None, width=dp(46), padding=(0, dp(7)))
-        add_label = Label(text="+", font_size="20sp", bold=True,
-                          color=(1, 1, 1, 1), halign="center", valign="middle")
+        add_box = BoxLayout(
+            orientation="vertical", size_hint_x=None, width=dp(62),
+            padding=(dp(2), dp(14)),
+        )
+        add_label = Label(
+            text="+", font_size="22sp", bold=True,
+            color=(1, 1, 1, 1), halign="center", valign="middle",
+        )
         with add_box.canvas.before:
             Color(0.05, 0.60, 0.30, 1)
             from kivy.graphics import RoundedRectangle
-            add_bg = RoundedRectangle(pos=add_box.pos, size=add_box.size, radius=[dp(7)])
+            add_bg = RoundedRectangle(pos=add_box.pos, size=add_box.size, radius=[dp(8)])
         add_box.bind(pos=lambda w, v: setattr(add_bg, "pos", v),
                      size=lambda w, v: setattr(add_bg, "size", v))
         add_box.add_widget(add_label)
         self.add_widget(add_box)
+
         self._state_redraw()
 
     def set_product_text(self, name, detail):
@@ -294,7 +311,7 @@ class ProductCard(ButtonBehavior, BoxLayout):
         with self.canvas.before:
             Color(0.94, 0.97, 0.99, 1) if self.state == "down" else Color(1, 1, 1, 1)
             from kivy.graphics import RoundedRectangle
-            RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(8)])
+            RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(10)])
 
 KV = """
 #:import dp kivy.metrics.dp
@@ -828,7 +845,7 @@ KV = """
                     GridLayout:
                         id: product_grid
                         cols: 1
-                        spacing: dp(5)
+                        spacing: dp(8)
                         padding: 0, dp(2)
                         size_hint_x: 1
                         width: self.parent.width
@@ -919,7 +936,7 @@ KV = """
                         Button:
                             text: "+ Kategori"
                             size_hint_x: None
-                            width: dp(108)
+                            width: dp(125)
                             background_normal: ""
                             background_color: .88, .91, .95, 1
                             color: .08, .11, .16, 1
@@ -929,7 +946,7 @@ KV = """
                         Button:
                             text: "Kelola Kategori"
                             size_hint_x: None
-                            width: dp(132)
+                            width: dp(145)
                             background_normal: ""
                             background_color: .82, .90, 1, 1
                             color: .10, .28, .55, 1
@@ -939,7 +956,7 @@ KV = """
                         Button:
                             text: "Riwayat Stok"
                             size_hint_x: None
-                            width: dp(112)
+                            width: dp(125)
                             background_normal: ""
                             background_color: .10, .14, .20, 1
                             color: 1, 1, 1, 1
@@ -949,7 +966,7 @@ KV = """
                         Button:
                             text: "Nilai Inventory"
                             size_hint_x: None
-                            width: dp(125)
+                            width: dp(145)
                             background_normal: ""
                             background_color: .72, .42, .10, 1
                             color: 1, 1, 1, 1
@@ -2846,14 +2863,11 @@ class POSApp(App):
         grid.clear_widgets()
         for p in self._v48_products(search):
             is_service = self._is_service_product(p)
-            stock_text = "JASA | tanpa stok" if is_service else f"Stok {float(p['stock']):g} {p['unit']}"
-            row = BoxLayout(
-                orientation="horizontal", size_hint_x=1, size_hint_y=None,
-                height=dp(78), spacing=dp(6), padding=(dp(4), dp(3))
-            )
-            thumb_box = BoxLayout(size_hint_x=None, width=dp(64), padding=dp(1))
+            stock_text = "Jasa • tanpa stok" if is_service else f"Stok {float(p['stock']):g} {p['unit']}"
+            row = BoxLayout(size_hint_x=1, size_hint_y=None, height=dp(88), spacing=dp(8), padding=dp(8), width=max(1, grid.width))
+            thumb_box = BoxLayout(size_hint_x=None, width=dp(84), padding=dp(2))
             with thumb_box.canvas.before:
-                Color(0.94, 0.96, 0.98, 1)
+                Color(0.93, 0.95, 0.97, 1)
                 from kivy.graphics import RoundedRectangle
                 thumb_bg = RoundedRectangle(pos=thumb_box.pos, size=thumb_box.size, radius=[dp(7)])
             thumb_box.bind(pos=lambda w, v: setattr(thumb_bg, "pos", v),
@@ -2862,43 +2876,27 @@ class POSApp(App):
             if image_path and os.path.exists(image_path):
                 thumb_box.add_widget(Image(source=image_path, allow_stretch=True, keep_ratio=True))
             else:
-                placeholder = Label(text="FOTO", font_size="8sp", bold=True,
-                                     color=(.45,.50,.58,1), halign="center", valign="middle")
-                placeholder.bind(size=lambda w,v: setattr(w,"text_size",v))
-                thumb_box.add_widget(placeholder)
+                placeholder = Label(text="FOTO", font_size="8sp", bold=True, color=(.45,.50,.58,1), halign="center", valign="middle")
+                placeholder.bind(size=lambda w,v: setattr(w,"text_size",v)); thumb_box.add_widget(placeholder)
             row.add_widget(thumb_box)
-
-            info_box = BoxLayout(orientation="vertical", spacing=0, padding=(dp(2), dp(1)))
-            name_lbl = Label(text=str(p['name']), font_size="11sp", bold=True,
-                             color=(.08,.10,.14,1), halign="left", valign="middle")
-            detail_lbl = Label(
-                text=f"{self.money(p['sell_price'])} | {stock_text}",
-                font_size="9sp", color=(.38,.43,.50,1), halign="left", valign="middle"
+            info = Label(
+                text=f"{p['name']} | {p['barcode'] or '-'}\n"
+                     f"{('JASA' if is_service else 'BARANG')} • Jual {self.money(p['sell_price'])} | {stock_text}",
+                halign="left", valign="middle", color=(.08,.10,.14,1), font_size="10sp"
             )
-            name_lbl.bind(size=lambda w,v: setattr(w,"text_size",(max(1,v[0]),None)))
-            detail_lbl.bind(size=lambda w,v: setattr(w,"text_size",(max(1,v[0]),None)))
-            info_box.add_widget(name_lbl)
-            info_box.add_widget(detail_lbl)
-            row.add_widget(info_box)
-
-            action_box = BoxLayout(orientation="horizontal", size_hint_x=None, width=dp(132), spacing=dp(4))
-            stock = Button(text="Stok" if not is_service else "Info", size_hint_x=None, width=dp(42),
-                           background_normal="", background_color=(.88,.97,.91,1),
-                           color=(.05,.45,.22,1), bold=True, font_size="9sp")
-            edit = Button(text="Edit", size_hint_x=None, width=dp(42),
-                          background_normal="", background_color=(.88,.94,1,1),
-                          color=(.10,.28,.55,1), bold=True, font_size="9sp")
-            delete = Button(text="Hapus", size_hint_x=None, width=dp(42),
-                            background_normal="", background_color=(.98,.90,.90,1),
-                            color=(.72,.12,.12,1), bold=True, font_size="9sp")
+            info.bind(size=lambda w,v: setattr(w,"text_size",(max(1,v[0]),None)))
+            row.add_widget(info)
+            stock = Button(text="Stok" if not is_service else "Info", size_hint_x=None, width=dp(58),
+                           background_normal="", background_color=(.88,.97,.91,1), color=(.05,.45,.22,1), bold=True)
+            edit = Button(text="Edit", size_hint_x=None, width=dp(60), background_normal="", background_color=(.88,.94,1,1), color=(.10,.28,.55,1), bold=True)
+            delete = Button(text="Hapus", size_hint_x=None, width=dp(60), background_normal="", background_color=(.98,.90,.90,1), color=(.72,.12,.12,1), bold=True)
             if is_service:
                 stock.bind(on_release=lambda btn, pid=p["id"]: self.info("Item jasa tidak menggunakan stok.", "Jasa"))
             else:
                 stock.bind(on_release=lambda btn, pid=p["id"]: self.stock_form(pid))
             edit.bind(on_release=lambda btn, pid=p["id"]: self.product_form(pid))
             delete.bind(on_release=lambda btn, pid=p["id"]: self.delete_product(pid))
-            action_box.add_widget(stock); action_box.add_widget(edit); action_box.add_widget(delete)
-            row.add_widget(action_box)
+            row.add_widget(stock); row.add_widget(edit); row.add_widget(delete)
             grid.add_widget(row)
 
     def product_form(self, product_id=None):
