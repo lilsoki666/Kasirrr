@@ -21,7 +21,7 @@ presplash.filename = %(source.dir)s/presplash.png
 # ==========================================
 # VERSION
 # ==========================================
-version = 4.10.5
+version = 4.10.6
 
 # ==========================================
 # PYTHON / KIVY
@@ -52,7 +52,7 @@ android.accept_sdk_license = True
 # ==========================================
 p4a.fork = kivy
 p4a.branch = master
-p4a.commit = 957a3e5
+p4a.commit = 58d2114
 
 # ==========================================
 # BUILDOZER
