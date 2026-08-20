@@ -21,12 +21,12 @@ presplash.filename = %(source.dir)s/presplash.png
 # ==========================================
 # VERSION
 # ==========================================
-version = 4.10.4
+version = 4.10.5
 
 # ==========================================
 # PYTHON / KIVY
 # ==========================================
-requirements = python3,kivy==2.2.1
+requirements = python3,kivy==2.2.1,pyjnius
 
 # ==========================================
 # DISPLAY
