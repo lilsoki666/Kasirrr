@@ -2,8 +2,6 @@ import os
 import sqlite3
 from datetime import datetime
 
-import firebase_admin
-from firebase_admin import credentials, db
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics import Color, RoundedRectangle
@@ -12,18 +10,20 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.image import Image
 from kivy.uix.label import Label
-from kivy.uix.modalpopup import ModalPopup
 from kivy.uix.popup import Popup
-from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 
 
 def get_db():
-    conn = sqlite3.connect("pos_kasir.db")
+    app = App.get_running_app()
+    # Menggunakan user_data_dir agar tidak kena Permission Error di Android/PC
+    db_dir = app.user_data_dir if (app and app.user_data_dir) else "."
+    db_path = os.path.join(db_dir, "pos_kasir.db")
+    
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -265,9 +265,7 @@ class MenuManagementWidget(BoxLayout):
         self.grid_menu = GridLayout(
             cols=1, spacing=dp(5), size_hint_y=None, padding=[0, dp(5)]
         )
-        self.grid_menu.bind(
-            minimum_height=self.grid_menu.setter("height")
-        )
+        self.grid_menu.bind(minimum_height=self.grid_menu.setter("height"))
         scroll.add_widget(self.grid_menu)
         self.add_widget(scroll)
 
@@ -355,9 +353,7 @@ class MenuManagementWidget(BoxLayout):
                 pos_hint={"center_y": 0.5},
             )
             btn_hapus.bind(
-                on_release=lambda btn, menu_id=m["id"]: self.hapus_menu(
-                    menu_id
-                )
+                on_release=lambda btn, menu_id=m["id"]: self.hapus_menu(menu_id)
             )
 
             row.add_widget(info_box)
@@ -389,9 +385,7 @@ class RiwayatWidget(BoxLayout):
         self.grid_riwayat = GridLayout(
             cols=1, spacing=dp(8), size_hint_y=None, padding=[0, dp(5)]
         )
-        self.grid_riwayat.bind(
-            minimum_height=self.grid_riwayat.setter("height")
-        )
+        self.grid_riwayat.bind(minimum_height=self.grid_riwayat.setter("height"))
         scroll.add_widget(self.grid_riwayat)
         self.add_widget(scroll)
 
@@ -459,9 +453,7 @@ class RiwayatWidget(BoxLayout):
                 font_size=dp(10),
             )
             btn_detail.bind(
-                on_release=lambda btn, faktur=t["faktur"]: self.show_detail(
-                    faktur
-                )
+                on_release=lambda btn, faktur=t["faktur"]: self.show_detail(faktur)
             )
 
             bottom_box.add_widget(lbl_detail)
@@ -477,9 +469,7 @@ class RiwayatWidget(BoxLayout):
         c.execute("SELECT * FROM transaksi WHERE faktur = ?", (faktur,))
         trans = c.fetchone()
 
-        c.execute(
-            "SELECT * FROM detail_transaksi WHERE faktur = ?", (faktur,)
-        )
+        c.execute("SELECT * FROM detail_transaksi WHERE faktur = ?", (faktur,))
         details = c.fetchall()
         conn.close()
 
@@ -737,13 +727,9 @@ class KasirScreen(Screen):
 
         header.add_widget(lbl_title)
         header.add_widget(btn_menu_mgm)
-        header.add_widget(
-            BoxLayout(size_hint_x=None, width=dp(5))
-        )  # spacer
+        header.add_widget(BoxLayout(size_hint_x=None, width=dp(5)))
         header.add_widget(btn_riwayat)
-        header.add_widget(
-            BoxLayout(size_hint_x=None, width=dp(5))
-        )  # spacer
+        header.add_widget(BoxLayout(size_hint_x=None, width=dp(5)))
         header.add_widget(btn_laporan)
 
         main_layout.add_widget(header)
@@ -764,15 +750,11 @@ class KasirScreen(Screen):
                     if kat == "Semua"
                     else (0.85, 0.87, 0.9, 1)
                 ),
-                color=(
-                    (1, 1, 1, 1) if kat == "Semua" else (0.3, 0.3, 0.3, 1)
-                ),
+                color=((1, 1, 1, 1) if kat == "Semua" else (0.3, 0.3, 0.3, 1)),
                 font_size=dp(12),
                 radius=8,
             )
-            btn.bind(
-                on_release=lambda instance, k=kat: self.filter_kategori(k)
-            )
+            btn.bind(on_release=lambda instance, k=kat: self.filter_kategori(k))
             self.kat_buttons[kat] = btn
             kat_bar.add_widget(btn)
 
@@ -830,9 +812,7 @@ class KasirScreen(Screen):
             color=(0.15, 0.65, 0.6, 1),
             halign="right",
         )
-        self.lbl_total_val.bind(
-            size=self.lbl_total_val.setter("text_size")
-        )
+        self.lbl_total_val.bind(size=self.lbl_total_val.setter("text_size"))
         total_box.add_widget(lbl_tot_text)
         total_box.add_widget(self.lbl_total_val)
         right_side.add_widget(total_box)
@@ -855,6 +835,8 @@ class KasirScreen(Screen):
         main_layout.add_widget(content)
         self.add_widget(main_layout)
 
+    def on_enter(self):
+        # Memuat menu setelah layar aktif
         self.load_menu()
 
     def filter_kategori(self, kategori):
@@ -952,9 +934,7 @@ class KasirScreen(Screen):
             subtotal = item["harga"] * item["jumlah"]
             grand_total += subtotal
 
-            row = BoxLayout(
-                size_hint_y=None, height=dp(35), spacing=dp(4)
-            )
+            row = BoxLayout(size_hint_y=None, height=dp(35), spacing=dp(4))
 
             info_box = BoxLayout(orientation="vertical")
             lbl_nama = Label(
@@ -974,9 +954,7 @@ class KasirScreen(Screen):
             info_box.add_widget(lbl_nama)
             info_box.add_widget(lbl_sub)
 
-            qty_box = BoxLayout(
-                size_hint_x=None, width=dp(70), spacing=dp(2)
-            )
+            qty_box = BoxLayout(size_hint_x=None, width=dp(70), spacing=dp(2))
             btn_min = RoundedButton(
                 text="-",
                 bg_color=(0.85, 0.87, 0.9, 1),
@@ -1285,9 +1263,7 @@ class KasirScreen(Screen):
 
     def open_riwayat(self, instance):
         widget = RiwayatWidget()
-        popup = CustomPopup(
-            "Riwayat Transaksi", widget, size_hint=(0.85, 0.85)
-        )
+        popup = CustomPopup("Riwayat Transaksi", widget, size_hint=(0.85, 0.85))
         popup.open()
 
     def open_laporan(self, instance):
@@ -1299,11 +1275,14 @@ class KasirScreen(Screen):
 class KasirApp(App):
 
     def build(self):
-        init_db()
         sm = ScreenManager()
         self.kasir_screen = KasirScreen(name="kasir")
         sm.add_widget(self.kasir_screen)
         return sm
+
+    def on_start(self):
+        # Inisialisasi DB dilakukan saat aplikasi siap
+        init_db()
 
 
 if __name__ == "__main__":
