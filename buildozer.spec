@@ -1,20 +1,22 @@
 [app]
-title = KasirQu
-package.name = poskasir
-package.domain = com.syauqi
+title = UT Kasirrr
+package.name = utkasir
+package.domain = org.test
+
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,atlas,kv,json,ttf,otf,txt
-source.exclude_dirs = .git,.github,.buildozer,bin,__pycache__
-version = 4.10.2
-requirements = python3,kivy,sqlite3
-orientation = portrait
-fullscreen = 1
-icon.filename = %(source.dir)s/icon.png
-presplash.filename = %(source.dir)s/presplash.png
+source.include_exts = py,png,jpg,kv,atlas,db
+
+# PASTIKAN bagian requirements HANYA ini (jangan masukkan sqlite3 atau sqlite)
+requirements = python3,kivy
+
+# Permissions
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+
+# Android API Target
 android.api = 33
 android.minapi = 21
 android.ndk = 25b
-android.archs = arm64-v8a
+android.archs = arm64-v8a, armeabi-v7a
 android.debug_artifact = apk
 android.permissions = BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, INTERNAL_STORAGE, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, READ_MEDIA_IMAGES
 android.accept_sdk_license = True
